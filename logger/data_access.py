@@ -1,6 +1,4 @@
-import sqlite3
-from typing import Optional, List, Dict
-from pathlib import Path
+from typing import List, Dict
 from logger.db import SensorDatabase
 
 class SensorDataReader:
@@ -12,35 +10,52 @@ class SensorDataReader:
         Args:
             db_path (Optional[str]): Path to the SQLite database file.
         """
-        resolved_path = db_path or SensorDatabase.get_db_path()
-        self.conn = sqlite3.connect(resolved_path)
-        self.conn.row_factory = sqlite3.Row
-        self.cursor = self.conn.cursor()
+        self.db = SensorDatabase(db_path=db_path)
+        self.cursor = self.db.cursor
+        self.conn = self.db.conn
         
-    def get_all_data(self) -> Optional[Dict]:
+    def get_all_data(self) -> List[Dict]:
         """
         Retrieves all records from the sensor_data table.
         
         Returns:
             List[Dict]: A list of all sensor readings as dictionaries.
         """
-        query = "SELECT * FROM sensor_data ORDER BY timestamp ASC;"
-        self.cursor.execute(query)
-        return [dict(row) for row in self.cursor.fetchall()]
+        self.cursor.execute(f"SELECT * FROM {SensorDatabase._SENSOR_TABLE};")
+        rows = self.cursor.fetchall()
+        return [self._row_to_dict(row, "sensor") for row in rows]
     
-    def get_latest_entry(self) -> List[Dict]:
+    def get_all_dssc_data(self) -> List[Dict]:
+        """
+        Retrieves all DSSC electrical data.
+        
+        Returns:
+            List[Dict]: All rows from the cell_output table.
+        """
+        self.cursor.execute(f"SELECT * FROM {SensorDatabase._CELL_OUTPUT_TABLE};")
+        rows = self.cursor.fetchall()
+        return [self._row_to_dict(row, "cell") for row in rows]
+    
+    def get_latest_entry(self, table: str) -> Dict:
         """
         Retrieves the most recent sensor reading.
         
         Returns:
             Optional[Dict]: The most recent row, or None if empty.
         """
-        query = "SELECT * FROM sensor_data ORDER BY timestamp DESC LIMIT 1;"
-        self.cursor.execute(query)
+        if table not in {SensorDatabase._SENSOR_TABLE, SensorDatabase._CELL_OUTPUT_TABLE}:
+            raise ValueError("Invalid table specified.")
+        
+        self.cursor.execute(
+            f"""
+            SELECT * FROM {table}
+            ORDER BY timestamp DESC LIMIT 1;
+            """
+        )
         row = self.cursor.fetchone()
-        return dict(row) if row else None
+        return self._row_to_dict(row, table_type="sensor" if table == SensorDatabase._SENSOR_TABLE else "cell")
     
-    def get_data_between(self, start_iso: str, end_iso: str) -> List[Dict]:
+    def get_data_between(self, table: str, start_iso: str, end_iso: str) -> List[Dict]:
         """
         Retrieves sensor readings within the specified timestamp range.
         
@@ -51,16 +66,44 @@ class SensorDataReader:
         Returns:
             List[Dict]: Matching records ordered chronologically.
         """
-        query = """
-            SELECT * FROM sensor_data
+        if table not in {SensorDatabase._SENSOR_TABLE, SensorDatabase._CELL_OUTPUT_TABLE}:
+            raise ValueError("Invalid table specified.")
+        
+        self.cursor.execute(
+            f"""
+            SELECT * FROM {table}
             WHERE timestamp BETWEEN ? and ?
             ORDER BY timestamp ASC;
-        """
-        self.cursor.execute(query, (start_iso, end_iso))
-        return [dict(row) for row in self.cursor.fetchall()]
+            """,
+            (start_iso, end_iso),
+        )
+        rows = self.cursor.fetchall()
+        row_type = "sensor" if table == SensorDatabase._SENSOR_TABLE else "cell"
+        return [self._row_to_dict(row, row_type) for row in rows]
+     
+    
+    def _row_to_dict(self, row, table_type: str) -> Dict:
+        if table_type == "sensor":
+            return {
+                "timestamp": row[0],
+                "lux": row[1],
+                "temperature": row[2],
+                "humidity": row[3],
+            }
+        elif table_type == "cell":
+            return {
+                "timestamp": row[0],
+                "cell_id": row[1],
+                "voltage": row[2],
+                "current": row[3],
+                "power": row[4],
+            }
+        else:
+            return {}
+    
     
     def close(self) -> None:
         """
         Closes the SQLite connection.
         """
-        self.conn.close()
+        self.db.close_conn()
