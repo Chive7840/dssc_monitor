@@ -17,7 +17,7 @@ class SensorDatabase:
                                      Defaults to 'sensor_data.db' if None.
         """
         self.db_path: str = db_path or self.get_db_path()
-        self.conn: sqlite3.Connection = sqlite3.connect(self.dp_path)
+        self.conn: sqlite3.Connection = sqlite3.connect(self.db_path)
         self.cursor: sqlite3.Cursor = self.conn.cursor()
         self._setup()
         
@@ -35,7 +35,7 @@ class SensorDatabase:
         """
         Ensures required tables exist in the database.
         """
-        self.cursor.execute("""
+        self.cursor.execute(f"""
             CREATE TABLE IF NOT EXISTS {self._SENSOR_TABLE} (
                 timestamp 	TEXT 	NOT NULL,
                 lux 		REAL,
@@ -45,7 +45,7 @@ class SensorDatabase:
             );
         """)
         
-        self.cursor.execute("""
+        self.cursor.execute(f"""
             CREATE TABLE IF NOT EXISTS {self._CELL_OUTPUT_TABLE} (
                 timestamp 	TEXT 	NOT NULL,
                 cell_id 	INTEGER NOT NULL,
@@ -66,7 +66,7 @@ class SensorDatabase:
             data (Dict[str, Any]): Sensor data dictionary.
         """
         self.cursor.execute(
-            """
+            f"""
             INSERT INTO {self._SENSOR_TABLE} (timestamp, lux, temperature, humidity)
             VALUES (?, ?, ?, ?);
             """,
@@ -89,7 +89,7 @@ class SensorDatabase:
             timestamp (str): ISO-format timestamp.
         """
         self.cursor.execute(
-            """
+            f"""
             INSERT INTO {self._CELL_OUTPUT_TABLE} (timestamp, cell_id, voltage, current, power)
             VALUES (?, ?, ?, ?, ?);
             """,

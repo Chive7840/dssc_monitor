@@ -1,72 +1,117 @@
 import unittest
 import os
-import sqlite3
 from datetime import datetime, timedelta
-
 from logger.data_access import SensorDataReader
 from logger.db import SensorDatabase
 
-TEST_DB = "test_sensor_data.db"
 
 class TestSensorDataReader(unittest.TestCase):
+    
     def setUp(self) -> None:
-        # Ensure a fresh database file
-        if os.path.exists(TEST_DB):
-            os.remove(TEST_DB)
+        """-- Setup in-memory test DB and seed sample data --"""
+        self.test_db_path = "test_sensor_data.db"
+        self.db = SensorDatabase(db_path=self.test_db_path)
+        self.reader = SensorDataReader(db_path=self.test_db_path)
         
-        self.db = SensorDatabase(db_path=TEST_DB)
-        now = datetime.now()
+        # Clear existing tables before each test
+        self.db.cursor.execute(f"DELETE FROM {SensorDatabase._SENSOR_TABLE};")
+        self.db.cursor.execute(f"DELETE FROM {SensorDatabase._CELL_OUTPUT_TABLE};")
+        self.db.conn.commit()
         
+        # Seed sensor_data
         self.sample_data = [
             {
-                "timestamp": (now - timedelta(seconds=30)).isoformat(),
-                "lux": 123.4,
-                "temperature": 22.1,
-                "humidity": 45.0,
-            },
-            {
-                "timestamp": (now - timedelta(seconds=10)).isoformat(),
-                "lux": 456.7,
-                "temperature": 23.5,
-                "humidity": 50.2,
-            },
-            {
-                "timestamp": now.isoformat(),
-                "lux": 789.0,
-                "temperature": 24.3,
-                "humidity": 55.6,
-            },
+                "timestamp": (datetime.now() - timedelta(minutes=i)).isoformat(),
+                "lux": 100.0 + i,
+                "temperature": 22.1 + i,
+                "humidity": 45.0 + i,
+            }
+            for i in range(3)
         ]
-        
-        for row in self.sample_data:
-            self.db.insert_data(row)
+        for entry in self.sample_data:
+            self.db.insert_data(entry)
             
-        self.reader = SensorDataReader(db_path=TEST_DB)
+        # Seed cell_output
+        self.sample_cell_data = [
+            {
+                "timestamp": self.sample_data[i]["timestamp"],
+                "cell_id": i,
+                "voltage": 0.5 + i,
+                "current": 0.01 + i,
+                "power": 0.005 + i,
+            }
+            for i in range(3)
+        ]
+        for entry in self.sample_cell_data:
+            self.db.insert_cell_output(
+                cell_id=entry["cell_id"],
+                reading={
+                    "voltage": entry["voltage"],
+                    "current": entry["current"],
+                    "power": entry["power"],
+                },
+                timestamp=entry["timestamp"],
+            )
         
     def tearDown(self) -> None:
+        """-- Clean up test database and close connections --"""
         self.reader.close()
         self.db.close_conn()
-        if os.path.exists(TEST_DB):
-            os.remove(TEST_DB)
+        if os.path.exists(self.test_db_path):
+            os.remove(self.test_db_path)
         
     def test_get_all_data_returns_correct_count(self):
-        result = self.reader.get_all_data()
-        self.assertEqual(len(result), len(self.sample_data))
+        """-- Test get_data_between for both tables returns correct number of records --"""
+        start = self.sample_data[2]["timestamp"]
+        end = self.sample_data[0]["timestamp"]
+        
+        sensor_results = self.reader.get_data_between(
+            SensorDatabase._SENSOR_TABLE, start=start, end=end
+        )
+        self.assertEqual(len(sensor_results), 3)
+        
+        cell_results = self.reader.get_data_between(
+            SensorDatabase._CELL_OUTPUT_TABLE, start=start, end=end
+        )
+        self.assertEqual(len(cell_results), 3)
+  
         
     def test_get_latest_entry_returns_most_recent(self):
-        latest = self.reader.get_latest_entry()
-        expected = self.sample_data[-1]
-        self.assertEqual(latest["timestamp"], expected["timestamp"])
+        """-- Test get_latest_entry returns correct sensor and cell records --"""
+        latest_sensor = self.reader.get_latest_entry(SensorDatabase._SENSOR_TABLE)
+        latest_cell = self.reader.get_latest_entry(SensorDatabase._CELL_OUTPUT_TABLE)
         
-    def test_get_data_between_filters_correctly(self):
-        start = self.sample_data[0]["timestamp"]
-        end = self.sample_data[1]["timestamp"]
+        self.assertEqual(latest_sensor["timestamp"], self.sample_data[0]["timestamp"])
+        self.assertEqual(latest_cell["timestamp"], self.sample_cell_data[0]["timestamp"])
         
-        result = self.reader.get_data_between(start, end)
-        # Should include both sample[0] and sample[1]
-        self.assertEqual(len(result), 2)
-        self.assertEqual(result[0]["timestamp"], self.sample_data[0]["timestamp"])
-        self.assertEqual(result[1]["timestamp"], self.sample_data[1]["timestamp"])
+    def test_row_to_dict_sensor_type(self):
+        """-- Ensure _row_to_dict parses sensor table rows correctly --"""
+        test_row = (
+            self.sample_data[0]["timestamp"],
+            self.sample_data[0]["lux"],
+            self.sample_data[0]["temperature"],
+            self.sample_data[0]["humidity"],
+        )
+        result = self.reader._row_to_dict(test_row, "sensor")
+        self.assertEqual(result["lux"], 100.0)
+        
+    def test_row_to_dict_cell_type(self):
+        """-- Ensure _row_to_dict parses cell table rows correctly --"""
+        test_row = (
+            self.sample_cell_data[0]["timestamp"],
+            self.sample_cell_data[0]["cell_id"],
+            self.sample_cell_data[0]["voltage"],
+            self.sample_cell_data[0]["current"],
+            self.sample_cell_data[0]["power"],
+        )
+        result = self.reader._row_to_dict(test_row, "cell")
+        self.assertEqual(result["cell_id"], 0)
+        
+    def test_row_to_dict_invalid_type_returns_empty_dict(self):
+        """-- Invalid table_type passed to _row_to_dict should return an empty dictionary. --"""
+        result = self.reader._row_to_dict((), "invalid_type")
+        self.assertEqual(result, {})
+        
         
 if __name__ == "__main__":
     unittest.main()

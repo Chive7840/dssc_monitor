@@ -2,7 +2,7 @@ from typing import List, Dict
 from logger.db import SensorDatabase
 
 class SensorDataReader:
-    def __init__(self, db_path: Optional[str] = None) -> None:
+    def __init__(self, db_path: str) -> None:
         """
         Initializes the SensorDataReader with a path to the SQLite database.
         If no path is provided, the class-level default from SensorDatabase is used.
@@ -55,7 +55,7 @@ class SensorDataReader:
         row = self.cursor.fetchone()
         return self._row_to_dict(row, table_type="sensor" if table == SensorDatabase._SENSOR_TABLE else "cell")
     
-    def get_data_between(self, table: str, start_iso: str, end_iso: str) -> List[Dict]:
+    def get_data_between(self, table: str, start: str, end: str) -> List[Dict]:
         """
         Retrieves sensor readings within the specified timestamp range.
         
@@ -75,7 +75,7 @@ class SensorDataReader:
             WHERE timestamp BETWEEN ? and ?
             ORDER BY timestamp ASC;
             """,
-            (start_iso, end_iso),
+            (start, end),
         )
         rows = self.cursor.fetchall()
         row_type = "sensor" if table == SensorDatabase._SENSOR_TABLE else "cell"
