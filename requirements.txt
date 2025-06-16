@@ -1,0 +1,16 @@
+# Core Adafruit CircuitPython compatibility layer for Raspberry Pi
+adafruit-blinka
+
+# Ambient light sensor (TSL2591)
+adafruit-circuitpython-tsl2591
+
+# DHT11 temperature and humidity sensor
+adafruit-circuitpython-dht
+
+# Used by Adafruit CircuitPython for I2C/SPI interfaces
+adafruit-circuitpython-busdevice
+adafruit-circuitpython-register
+
+# Optional: usefor for advanced hardware support
+RPi.GPIO
+spidev
