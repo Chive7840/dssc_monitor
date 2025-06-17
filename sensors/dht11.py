@@ -1,5 +1,6 @@
 import board
 import adafruit_dht
+from typing import Optional, Tuple
 
 class DHT11Sensor:
     """
@@ -8,9 +9,15 @@ class DHT11Sensor:
     
     
     def __init__(self, pin=board.D17):
+        """
+        Initializes the DHT11 sensor on the specified GPIO pin.
+        
+        Args:
+            pin: The GPIO pin the DHT11 is connected to (default is board.D17).
+        """
         self.sensor = adafruit_dht.DHT11(pin)
         
-    def read(self) -> tuple[float | None, float | None]:
+    def read(self) -> Optional[Tuple[float, float]]:
         """
         Attempts to read temperature and humidity values from the sensor.
         
@@ -22,9 +29,9 @@ class DHT11Sensor:
             temperature = self.sensor.temperature	# °C
             humidity = self.sensor.humidity			# %
             return temperature, humidity
-        except RuntimeError:
-            # DHT sensors occasionally return errors. Retry logic can be added if needed.
-            return None, None
+        except (RuntimeError, ValueError) as err:
+            print(f"[DHT11Sensor] Read error: {err}")
+            return None
         
     def cleanup(self) -> None:
         """
