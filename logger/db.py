@@ -16,20 +16,10 @@ class SensorDatabase:
             db_path (Optional[str]): Path to the SQLite DB file.
                                      Defaults to 'sensor_data.db' if None.
         """
-        self.db_path: str = db_path or self.get_db_path()
+        self.db_path: str = db_path or self._DEFAULT_DB_PATH
         self.conn: sqlite3.Connection = sqlite3.connect(self.db_path)
         self.cursor: sqlite3.Cursor = self.conn.cursor()
         self._setup()
-        
-    @classmethod
-    def get_db_path(cls) -> str:
-        """
-        Provides the default path to the SQLite databse file.
-        
-        Returns:
-            str: The default path for the sensor data database.
-        """
-        return cls._DEFAULT_DB_PATH
         
     def _setup(self) -> None:
         """
@@ -49,9 +39,9 @@ class SensorDatabase:
             CREATE TABLE IF NOT EXISTS {self._CELL_OUTPUT_TABLE} (
                 timestamp 	TEXT 	NOT NULL,
                 cell_id 	INTEGER NOT NULL,
-                voltage 	REAL 	NOT NULL,
-                current 	REAL	NOT NULL,
-                power		REAL	NOT NULL,
+                voltage 	REAL,
+                current 	REAL,
+                power		REAL,
                 PRIMARY KEY (timestamp, cell_id)
             );
         """)

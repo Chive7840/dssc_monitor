@@ -1,28 +1,39 @@
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Optional, Dict
 from logger.db import SensorDatabase
 
 class SensorLogger:
+    """
+    SensorLogger handles timestamped data logging into appropriate database tables
+    """
+    
     def __init__(self, db_path: Optional[str] = None) -> None:
         """
-        Initializes the SensorLogger with an injected SensorDatabase.
+        Initializes the SensorLogger with a SensorDatabase instance.
         
         Args:
-            db_path (Optional[str]): The path for the database instance used for storing readings.
+            db_path (Optional[str]): Optional path to the SQLite database file.
         """
         self.db = SensorDatabase(db_path=db_path)
         
-    def log_data(self, lux: float, temperature: float, humidity: float, timestamp: Optional[str] = None)-> None:
+    def log_data(
+        self,
+        lux: float,
+        temperature: float,
+        humidity: float,
+        timestamp: Optional[str] = None
+    )-> None:
         """
         Logs sensor data to the database with an optional timestamp.
         
         Args:
-            data (Dict[str, Any]): Sensor readings
-            timestamp (Opional[str]): Optional ISO-8 timestamp.
+            lux (float): Light intensity reading from TSL2591.
+            temperature (float): Temperature in Celsius from DHT11.
+            humidity (float): Relative humidity percentage from DHT11.
+            timestamp (Optional[str]): Optional ISO-8 timestamp. Auto-generated if not provided.
         """      
         resolved_timestamp: str = timestamp or datetime.now().isoformat()
-        
-        record = {
+        record: Dict[str, float | str] = {
             "timestamp": resolved_timestamp,
             "lux": lux,
             "temperature": temperature,
@@ -30,7 +41,12 @@ class SensorLogger:
         }
         self.db.insert_data(record)
         
-    def log_cell_output(self, cell_id: int, data: Dict[str, float], timestamp: Optional[str] = None) -> None:
+    def log_cell_output(
+        self,
+        cell_id: int,
+        data: Dict[str, float],
+        timestamp: Optional[str] = None
+    ) -> None:
         """
         Logs DSSC electrical data (voltage, current, power).
         
