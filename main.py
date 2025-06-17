@@ -24,6 +24,7 @@ def main():
             # -- Light sensor (TSL2591) --
             try:
                 lux = tsl_sensor.read_lux()
+                tsl_sensor.auto_adjust(lux)
                 print(f"[LOG] Light intensity: {lux:.2f}")
                 logger.log_data(lux=lux)
             except Exception as err:
