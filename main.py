@@ -1,49 +1,51 @@
 from sensors.tsl2591 import TSL2591Sensor
 from sensors.dht11 import DHT11Sensor
-from logger.sensor_logger import log_sensor_data
+from sensors.ina219 import INA219Manager
+from logger.sensor_logger import SensorLogger
 from logger.db import SensorDatabase
 from time import sleep
 
+
+
 def main() -> None:
-    # Initialize sensors and logger
-    tsl_sensor: TSL2591Sensor = TSL2591Sensor()
-    dht_sensor: DHT11Sensor = DHT11Sensor(pin=17) 	# Adjust pin as needed
+    """-- Executes main logging loop for all sensors --"""
     
-    db: SensorDatabase = SensorDatabase.get_db_path()
-    logger: SensorLogger = SensorLogger(db=db)
-    
+    # Initializes sensors
+    tsl_sensor = TSL2591Sensor()
+    dht_sensor = DHT11Sensor(pin=17)	# Adjust pin number as needed
+    ina219_manager = INA219Manager(addresses=[0x40, 0x41, 0x44])	# Update I2C addresses as needed
+    logger = SensorLogger()
+
+    LOG_INTERVAL= 60	# seconds
+        
     print("[INFO] Starting live sensor logging. Press CTRL+C to stop logging.")
     
-    try:
-        while True:
-            try:
-                lux: float = tsl_sensor.read_lux()
-                temperature: float
-                humidity: float
-                temperature, humidity = dht_sensor.read()
-                
-                # Guards against invalid DHT11 readings
-                if temperature is not None and humidity is not None:
-                    logger.log(
-                        lux = lux,
-                        temperature = temperature,
-                        humidity = humidity
-                    )
-                else:
-                    print("[WARN] DHT11 read failed. Skipping DHT11 reading.")
-                
-                sleep(10) # log every 10 seconds (adjustable)
-                
-            except RuntimeError as err:
-                print(f"Sensor read error: {err}")
-            
-    except KeyboardInterrupt:
-        print("\n[INFO] Logging interrupted by user.")
+    while True:
+        lux = tsl_sensor.read_lux()
+        temperature, humidity = dht_sensor.read()
+        
+        logger.log_data(
+            lux=lux,
+            temperature=temperature,
+            humidity=humidity
+        )
+        
+        for reading in ina219_manager.read_all():
+            logger.log_cell_output(
+                cell_id=reading["cell_id"],
+                voltage=reading["voltage"],
+                current=reading["current"],
+                power=reading["power"]
+            )
+        
+        print("[INFO] Sensor data logged.")
+        time.sleep(60)
 
-    finally:
-        logger.close()
-        print("[INFO] Sensor logging stopped and database closed.")
+
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("[INFO] Logging interrupted by user.")
     

@@ -12,7 +12,7 @@ class SensorLogger:
         """
         self.db = SensorDatabase(db_path=db_path)
         
-    def log_data(self, data: Dict[str, Any], timestamp: Optional[str] = None)-> None:
+    def log_data(self, lux: float, temperature: float, humidity: float, timestamp: Optional[str] = None)-> None:
         """
         Logs sensor data to the database with an optional timestamp.
         
@@ -24,9 +24,9 @@ class SensorLogger:
         
         record = {
             "timestamp": resolved_timestamp,
-            "lux": data["lux"],
-            "temperature": data["temperature"],
-            "humidity": data["humidity"]
+            "lux": lux,
+            "temperature": temperature,
+            "humidity": humidity
         }
         self.db.insert_data(record)
         
