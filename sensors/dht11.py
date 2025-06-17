@@ -2,6 +2,9 @@ import board
 import adafruit_dht
 
 class DHT11Sensor:
+    """Handles interaction with a DHT11 temperature/humidity sensor."""
+    
+    
     def __init__(self, pin=board.D17):
         self.sensor = adafruit_dht.DHT11(pin)
         

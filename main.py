@@ -6,46 +6,65 @@ from logger.db import SensorDatabase
 from time import sleep
 
 
+def setup_sensors():
+    """-- Initializes all sensors --"""
+    return {
+        "ambient": TSL2591Sensor(),
+        "dht": DHT11Sensor(),
+        "cell_a": INA219Sensor(i2c_addr=0x40),
+        "cell_b": INA219Sensor(i2c_addr=0x41),
+        "cell_c": INA219Sensor(i2c_addr=0x44),
+    }
 
-def main() -> None:
+
+
+def main():
     """-- Executes main logging loop for all sensors --"""
-    
-    # Initializes sensors
-    tsl_sensor = TSL2591Sensor()
-    dht_sensor = DHT11Sensor(pin=17)	# Adjust pin number as needed
-    ina219_manager = INA219Manager(addresses=[0x40, 0x41, 0x44])	# Update I2C addresses as needed
+    sensors = setup_sensors()
     logger = SensorLogger()
 
-    LOG_INTERVAL= 60	# seconds
-        
-    print("[INFO] Starting live sensor logging. Press CTRL+C to stop logging.")
-    
-    while True:
-        lux = tsl_sensor.read_lux()
-        temperature, humidity = dht_sensor.read()
-        
-        logger.log_data(
-            lux=lux,
-            temperature=temperature,
-            humidity=humidity
-        )
-        
-        for reading in ina219_manager.read_all():
-            logger.log_cell_output(
-                cell_id=reading["cell_id"],
-                voltage=reading["voltage"],
-                current=reading["current"],
-                power=reading["power"]
-            )
-        
-        print("[INFO] Sensor data logged.")
-        time.sleep(60)
-
+    try:
+        while True:
+            # -- Read from TSL2591 --
+            try:
+                lux = sensors["ambient"].read_lux()
+                logger.log_data("ambient_light", {"lux": lux})
+                print(f"[Ambient] Lux: {lux:.2f}")
+            except Exception as err:
+                print(f"[Ambient Sensor Error] {err}")
+            
+            # -- Read from DHT11 --
+            try:
+                temp, humidity = sensors["dht"].read()
+                logger.log_data("temperature_humidity", {
+                    "temperature": temp,
+                    "humidity": humidity
+                })
+                print(f"[DHT11] Temp: {temp:.1f}°C | Humidity: {humidity:.1f}%")
+            except Exception as err:
+                print(f"[DHT11 Sensor Error] {err}")
+                
+            # -- Read from each INA219 cell --
+            for cell_key in ("cell_a", "cell_b", "cell_c"):
+                try:
+                    voltage = sensors[cell_key].read_bus_voltage()
+                    current = sensors[cell_key].read_current()
+                    power = sensors[cell_key].read_power()
+                    logger.log_data("cell_output", {
+                         "cell_id": cell_key.upper(),
+                         "voltage": voltage,
+                         "current": current,
+                         "power": power
+                    })
+                    print(f"[{cell_key.upper()}] V={voltage:.2f}V I={current:.2f}mA P={power:.2f}mW")
+                except Exception as err:
+                    print(f"[{cell_key.upper()} Sensor Error] {err}")
+                    
+            time.sleep(5)
+            
+    except KeyboardInterrupt:
+        print("Terminating...")
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        print("[INFO] Logging interrupted by user.")
-    
+    main()
