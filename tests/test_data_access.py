@@ -1,4 +1,4 @@
-import unittest
+from unittest import TestCase
 import os
 from typing import List, Dict
 from datetime import datetime, timedelta
@@ -6,7 +6,7 @@ from database.data_access import SensorDataReader
 from database.db import SensorDatabase
 
 
-class TestSensorDataReader(unittest.TestCase):
+class TestSensorDataReader(TestCase):
     """
     Test suite for validating functionality of SensorDataReader
     with both sensor and cell output tables.
@@ -94,8 +94,8 @@ class TestSensorDataReader(unittest.TestCase):
         sensor_entry = self.reader.get_latest_entry(SensorDatabase._SENSOR_TABLE)
         cell_entry = self.reader.get_latest_entry(SensorDatabase._CELL_OUTPUT_TABLE)
         
-        self.assertEqual(latest_sensor["timestamp"], self.sample_data[0]["timestamp"])
-        self.assertEqual(latest_cell["timestamp"], self.sample_cell_data[0]["timestamp"])
+        self.assertEqual(sensor_entry["timestamp"], self.sample_data[0]["timestamp"])
+        self.assertEqual(cell_entry["timestamp"], self.sample_cell_data[0]["timestamp"])
         
     def test_row_to_dict_sensor_type(self):
         """

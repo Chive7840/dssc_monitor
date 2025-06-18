@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional, Dict
-from logger.db import SensorDatabase
+from database.db import SensorDatabase
 
 class SensorLogger:
     """

@@ -3,11 +3,11 @@ Unit test for the TSL2591 ambient light sensor module.
 """
 
 from sensors.tsl2591 import TSL2591Sensor
-import unittest
+from unittest import TestCase
 
 
 
-class TestTSL2591Sensor(unittest.TestCase):
+class TestTSL2591Sensor(TestCase):
     """
     Test suite for verifying functionality of the TSL2591Sensor class.
     """
@@ -46,14 +46,14 @@ class TestTSL2591Sensor(unittest.TestCase):
         """
         # Simulate low light conditions
         self.sensor.set_gain(self.sensor.GAIN_LOW)
-        self.sensor.set_integration_time(self.sensor.INTEGRATION_TIME_100MS)
+        self.sensor.set_integration_time(self.sensor.INTEGRATIONTIME_100MS)
         
         self.sensor.auto_gain_adjust(0.5) 	# Very dim environment
         gain = self.sensor.get_gain()
         integration_time = self.sensor.get_integration_time()
         
         self.assertTrue(
-            gain > self.sensor.GAIN_LOW or integration_time > self.sensor.INTEGRATION_TIME_100MS,
+            gain > self.sensor.GAIN_LOW or integration_time > self.sensor.INTEGRATIONTIME_100MS,
             "Expected gain or integration time to increase under low lux conditions."
         )
         
@@ -63,14 +63,14 @@ class TestTSL2591Sensor(unittest.TestCase):
         """
         # Simulate high light conditions
         self.sensor.set_gain(self.sensor.GAIN_MAX)
-        self.sensor.set_integration_time(self.sensor.INTEGRATION_TIME_600MS)
+        self.sensor.set_integration_time(self.sensor.INTEGRATIONTIME_600MS)
         
         self.sensor.auto_gain_adjust(180_000.0)		# Extremely bright environment
         gain = self.sensor.get_gain()
         integration_time = self.sensor.get_integration_time()
         
         self.assertTrue(
-            gain < self.sensor.GAIN_MAX or integration_time < self.sensor.INTEGRATION_TIME_600MS,
+            gain < self.sensor.GAIN_MAX or integration_time < self.sensor.INTEGRATIONTIME_600MS,
             "Expected gain or integration time to decrease under high lux conditions."
         )
 

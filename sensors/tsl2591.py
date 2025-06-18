@@ -1,16 +1,24 @@
 import board
 import busio
 import adafruit_tsl2591
-from adafruit_tsl2591 import (
-    TSL2591, GAIN_LOW, GAIN_MED, GAIN_HIGH, GAIN_MAX,
-    INTEGRATIONTIME_100MS, INTEGRATIONTIME_200MS, INTEGRATIONTIME_300MS,
-    INTEGRATIONTIME_400MS, INTEGRATIONTIME_500MS, INTEGRATIONTIME_600MS,
-)
+from adafruit_tsl2591 import TSL2591
 
 class TSL2591Sensor:
     """
     Interface for the Adafruit TSL2591 High Dynamic Range Digital Light Sensor.
     """
+    GAIN_LOW = adafruit_tsl2591.GAIN_LOW
+    GAIN_MED = adafruit_tsl2591.GAIN_MED
+    GAIN_HIGH = adafruit_tsl2591.GAIN_HIGH
+    GAIN_MAX = adafruit_tsl2591.GAIN_MAX
+    
+    INTEGRATIONTIME_100MS = adafruit_tsl2591.INTEGRATIONTIME_100MS
+    INTEGRATIONTIME_200MS = adafruit_tsl2591.INTEGRATIONTIME_200MS
+    INTEGRATIONTIME_300MS = adafruit_tsl2591.INTEGRATIONTIME_300MS
+    INTEGRATIONTIME_400MS = adafruit_tsl2591.INTEGRATIONTIME_400MS
+    INTEGRATIONTIME_500MS = adafruit_tsl2591.INTEGRATIONTIME_500MS
+    INTEGRATIONTIME_600MS = adafruit_tsl2591.INTEGRATIONTIME_600MS
+    
     
     def __init__(self) -> None:
         """
@@ -51,8 +59,16 @@ class TSL2591Sensor:
         Raises:
             ValueError: If the provided gain is not a valid setting.
         """
-        if gain not in [GAIN_LOW, GAIN_MED, GAIN_HIGH, GAIN_MAX]:
+        valid_gains = {
+            self.GAIN_LOW,
+            self.GAIN_MED,
+            self.GAIN_HIGH,
+            self.GAIN_MAX
+        }
+        
+        if gain not in valid_gains:
             raise ValueError("Invalid gain setting.")
+        
         self.sensor.gain = gain
         
     # ----------------------------------------------------------------
@@ -76,9 +92,16 @@ class TSL2591Sensor:
         Raises:
             ValueError: If the provided integration_time is not a valid setting.
         """
-        if integration_time not in [INTEGRATIONTIME_100MS, INTEGRATIONTIME_200MS,
-                            INTEGRATIONTIME_300MS, INTEGRATIONTIME_400MS,
-                            INTEGRATIONTIME_500MS, INTEGRATIONTIME_600MS]:
+        valid_integration_times = {
+            self.INTEGRATIONTIME_100MS,
+            self.INTEGRATIONTIME_200MS,
+            self.INTEGRATIONTIME_300MS,
+            self.INTEGRATIONTIME_400MS,
+            self.INTEGRATIONTIME_500MS,
+            self.INTEGRATIONTIME_600MS,
+        }
+        
+        if integration_time not in valid_integration_times:
             raise ValueError("Invalid integration time setting.")
         self.sensor.integration_time = integration_time
         
@@ -95,20 +118,20 @@ class TSL2591Sensor:
         
         # Definitions for adjustment thresholds
         if lux < 10:
-            desired_gain = GAIN_MAX
-            desired_time = INTEGRATIONTIME_600MS
+            desired_gain = self.GAIN_MAX
+            desired_time = self.INTEGRATIONTIME_600MS
         elif lux < 100:
-            desired_gain = GAIN_HIGH
-            desired_time = INTEGRATIONTIME_400MS
+            desired_gain = self.GAIN_HIGH
+            desired_time = self.INTEGRATIONTIME_400MS
         elif lux < 1000:
-            desired_gain = GAIN_MED
-            desired_time = INTEGRATIONTIME_300MS
+            desired_gain = self.GAIN_MED
+            desired_time = self.INTEGRATIONTIME_300MS
         elif lux < 40000:
-            desired_gain = GAIN_LOW
-            desired_time = INTEGRATIONTIME_200MS
+            desired_gain = self.GAIN_LOW
+            desired_time = self.INTEGRATIONTIME_200MS
         else:
-            desired_gain = GAIN_LOW
-            desired_time = INTEGRATIONTIME_100MS
+            desired_gain = self.GAIN_LOW
+            desired_time = self.INTEGRATIONTIME_100MS
             
         # Check if the current values need to be adjusted
         changed = False

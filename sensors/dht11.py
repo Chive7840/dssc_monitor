@@ -28,10 +28,14 @@ class DHT11Sensor:
         try:        
             temperature = self.sensor.temperature	# °C
             humidity = self.sensor.humidity			# %
-            return temperature, humidity
+            
+            if temperature is not None and humidity is not None:
+                return temperature, humidity
+            
         except (RuntimeError, ValueError) as err:
             print(f"[DHT11Sensor] Read error: {err}")
-            return None
+        
+        return None
         
     def cleanup(self) -> None:
         """

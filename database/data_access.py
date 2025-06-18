@@ -1,5 +1,5 @@
 from typing import List, Dict
-from logger.db import SensorDatabase
+from database.db import SensorDatabase
 
 class SensorDataReader:
     """

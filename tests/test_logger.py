@@ -1,11 +1,11 @@
-import unittest
+from unittest import TestCase
 import os
 from database.db import SensorDatabase
 from logger.sensor_logger import SensorLogger
 from datetime import datetime
 
 
-class TestSensorLogging(unittest.TestCase):
+class TestSensorLogging(TestCase):
     """
     Unit tests for the SensorLogger and SensorDatabase integration.
     """
@@ -60,9 +60,9 @@ class TestSensorLogging(unittest.TestCase):
         """
         self.logger.log_data(
             timestamp="2025-06-12T12:00:00",
-            lux=150.0,
-            temperature=23.5,
-            humidity=55.0
+            lux=123.45,
+            temperature=22.1,
+            humidity=56.7
         )
         
         result = self.db.conn.execute(f"SELECT * FROM {SensorDatabase.get_sensor_table_name()};").fetchone()
