@@ -35,7 +35,7 @@ def main():
             # -- Light sensor (TSL2591) --
             try:
                 lux = tsl_sensor.read_lux()
-                tsl_sensor.auto_adjust_gain(lux)
+                tsl_sensor.auto_gain_adjust(lux)
                 print(f"[LOG] Light intensity: {lux:.2f}")
                 logger.log_data(lux=lux)
             except Exception as err:
@@ -57,12 +57,19 @@ def main():
                     current = sensor.read_current()
                     power = sensor.read_power()
                     print(f"[LOG] Cell{idx}: Voltage={voltage:.3f}V, Current={current:.3f}mA P={power:.2f}mW")
-                    logger.log_cell_output(cell_id=idx, voltage=voltage, current=current, power=power)
+                    logger.log_cell_output(
+                        cell_id=f"cell_{idx}",
+                        data={
+                            "voltage": voltage,
+                            "current": current,
+                            "power": power
+                        }
+                    )
 
                 except Exception as err:
                     print(f"[ERROR] Failed to read INA219 sensor {idx}: {err}")
                     
-            sleep(5)
+            sleep(10)
             
     except KeyboardInterrupt:
         print("[ERROR] Logging interrupted by user.\nTerminating...")
