@@ -1,6 +1,6 @@
 import unittest
 import os
-from logger.db import SensorDatabase
+from database.db import SensorDatabase
 from logger.sensor_logger import SensorLogger
 from datetime import datetime
 

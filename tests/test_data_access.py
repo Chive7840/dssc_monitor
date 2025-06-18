@@ -2,8 +2,8 @@ import unittest
 import os
 from typing import List, Dict
 from datetime import datetime, timedelta
-from logger.data_access import SensorDataReader
-from logger.db import SensorDatabase
+from database.data_access import SensorDataReader
+from database.db import SensorDatabase
 
 
 class TestSensorDataReader(unittest.TestCase):
