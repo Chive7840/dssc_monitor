@@ -1,20 +1,29 @@
+from time import sleep
+import unittest
 from sensors.dht11 import DHT11Sensor
-import time
 
-def run_dht11_test():
-    sensor = DHT11Sensor()
-    print("Starting DHT11 test...")
+def run_dht11_test(unittest.TestCase):
+    """
+    Integration tests for the DHT11 sensor.
+    """
     
-    try:        
+    def setUp(self):
+        self.sensor = DHT11Sensor()
+        
+    def tearDown(self):
+        self.sensor.cleanup()
+        
+    def test_readings_are_valid(self):
+        """
+        Test that temperature and humidity readings are not None.
+        """
         for _ in range(5):
-            temperature, humidity = sensor.read()
-            if humidity is not None and temperature is not None:
-                print(f"Temperature: {temperature} °C | Humidity: {humidity} %")
-            else:
-                print("Sensor returned invalid data. Retrying...")
-            time.sleep(2)
-    except KeyboardInterrupt:
-        print("Test interrupted by user.")
+            temperature, humidity = self.sensor.read()
+            self.assertIsNotNone(temperature, "Temperature reading is None")
+            self.assertIsNotNone(humidity, "Humidity reading is None")
+            self.assertIsInstance(temperature, (int, float), "Temperature is not numeric")
+            self.assertIsInstance(humidity, (int, float), "Humidity is not numeric")
+            sleep(2)
 
 if __name__ == "__main__":
     run_dht11_test()
