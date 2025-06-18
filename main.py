@@ -35,7 +35,7 @@ def main():
             # -- Light sensor (TSL2591) --
             try:
                 lux = tsl_sensor.read_lux()
-                tsl_sensor.auto_adjust(lux)
+                tsl_sensor.auto_adjust_gain(lux)
                 print(f"[LOG] Light intensity: {lux:.2f}")
                 logger.log_data(lux=lux)
             except Exception as err:
@@ -43,9 +43,9 @@ def main():
             
             # -- Humidity & Temperature sensor (DHT11) --
             try:
-                temp, humidity = dht_sensor.read()
-                print(f"[LOG] Temp: {temp:.1f}°C | Humidity: {humidity:.1f}%")
-                logger.log_data(temp=temp, humidity=humidity)
+                temperature, humidity = dht_sensor.read()
+                print(f"[LOG] Temperature: {temperature:.1f}°C | Humidity: {humidity:.1f}%")
+                logger.log_data(temperature=temperature, humidity=humidity)
 
             except Exception as err:
                 print(f"[ERROR] Failed to read DHT11: {err}")
