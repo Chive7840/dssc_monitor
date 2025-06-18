@@ -14,7 +14,7 @@ class INA219Sensor:
         Initialize INA219 sensor at a specifc I2C address.
         """
         self.cell_id = cell_id
-        self.device = INA219(i2c_bus, address)
+        self.device = INA219(i2c, address)
         
     def read_voltage(self) -> float:
         """

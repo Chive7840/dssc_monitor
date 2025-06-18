@@ -4,21 +4,31 @@ from sensors.ina219 import INA219Sensor
 from logger.sensor_logger import SensorLogger
 from database.db import SensorDatabase
 from time import sleep
+import board
+import busio
 
 
 def setup_sensors():
-    """-- Initializes all sensors --"""
-    tsl_sensor = TSL2591Sensor()
+    """
+    Initializes all sensors: DHT11, TSL2591, and INA219 array.
+    """
     dht_sensor = DHT11Sensor()
-    ina_sensors = [INA219Sensor(address=addr) for addr in [0x40, 0x41, 0x44]]
-    return tsl_sensor, dht_sensor, ina_sensors
+    tsl_sensor = TSL2591Sensor()
+    
+    i2c = busio.I2C(board.SCL, board.SDA)
+    addresses = [0x40, 0x41, 0x44]
+    cell_ids = ["cell_1", "cell_2", "cell_3"]
+    
+    ina_sensors = [INA219Sensor(i2c, addr, cid) for addr, cid in zip(addresses, cell_ids)]
+    
+    return dht_sensor, tsl_sensor, ina_sensors
 
 
 
 def main():
     """-- Executes main logging loop for all sensors --"""
     logger = SensorLogger()
-    tsl_sensor, dht_sensor, ina_sensors = setup_sensors()
+    dht_sensor, tsl_sensor, ina_sensors = setup_sensors()
 
     try:
         while True:
