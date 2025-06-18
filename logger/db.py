@@ -21,6 +21,20 @@ class SensorDatabase:
         self.cursor: sqlite3.Cursor = self.conn.cursor()
         self._setup()
         
+    @classmethod
+    def get_sensor_table_name(cls) -> str:
+        """
+        Returns the name of the general sensor data table.
+        """
+        return cls._SENSOR_TABLE
+    
+    @classmethod
+    def get_cell_output_table_name(cls) -> str:
+        """
+        Returns the name of the cell output data table.
+        """
+        return cls._CELL_OUTPUT_TABLE
+        
     def _setup(self) -> None:
         """
         Ensures required tables exist in the database.
