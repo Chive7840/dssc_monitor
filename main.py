@@ -2,6 +2,7 @@ from sensors.tsl2591 import TSL2591Sensor
 from sensors.dht11 import DHT11Sensor
 from sensors.ina219 import INA219Manager
 from logger.sensor_logger import SensorLogger
+from database.db import SensorDatabase
 from time import sleep
 
 
