@@ -3,6 +3,7 @@ from sensors.dht11 import DHT11Sensor
 from sensors.ina219 import INA219Sensor
 from logger.sensor_logger import SensorLogger
 from database.db import SensorDatabase
+from database.data_access import SensorDataReader
 from time import sleep
 import board
 import busio
@@ -28,14 +29,19 @@ def setup_sensors():
 def main():
     """-- Executes main logging loop for all sensors --"""
     logger = SensorLogger()
+    #reader = SensorDataReader("sensor_data.db")		# TODO: Fix hardcoding to be more dynamic
     dht_sensor, tsl_sensor, ina_sensors = setup_sensors()
 
     try:
         while True:
             data = {}
+            
+            #reader.show_all_dataframes(True) # Comment out while the program is gathering data.
+            
             # -- Light sensor (TSL2591) --
             lux = None
             sleep(3)
+            
             try:
                 tsl_sensor.auto_gain_adjust()
                 lux = tsl_sensor.read_lux()

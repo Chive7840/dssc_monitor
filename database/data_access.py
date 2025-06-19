@@ -136,19 +136,45 @@ class SensorDataReader:
         cell_query = f"SELECT * FROM {SensorDatabase.get_cell_output_table_name()};"
         
         sensor_df = pd.read_sql_query(sensor_query, self.conn)
-        sensor_df = pd.read_sql_query(cell_query, self.conn)
+        cell_df = pd.read_sql_query(cell_query, self.conn)
         
-        if self.print_dfs:
+        if print_dfs:
             print("Sensor Data:")
-            print(dfs["sensor_data"])
+            print(sensor_df)
             
             print("\nCell Output:")
-            print(dfs["cell_output"])
+            print(cell_df)
         
         return {
             "sensor_data": sensor_df,
             "cell_output": cell_df
         }
+    
+    def clear_all_data(self) -> None:
+        """
+        Deletes all records from both sensor_data and cell_output tables.
+        Intended for resetting the database before an experiment run.
+        Requires user confirmation via interactive prompt to proceed.
+        
+        Raises: PermissionError: If user declines the confirmation prompt.
+        """
+        
+        confirm = input(
+            "WARNING: This will permanently delete all dat from 'sensor_data' and 'cell_output'."
+            "Type 'YES' to confirm: "
+        )
+        if confirm.strip().upper() != "YES":
+            raise PermissionError("Data deletion aborted by user.")
+        
+        self.cursor.execute(f"DELETE FROM {SensorDatabase.get_sensor_table_name()};")
+        self.cursor.execute(f"DELETE FROM {SensorDatabase.get_cell_output_table_name()};")
+        self.conn.commit()
+        print("All data successfully deleted.")
+        
+        # -- Usage --
+        #reader = SensorDataReader("sensor_data.db")
+        #reader.clear_all_data()	# Will promppt user to type 'YES'
+        #reader.close()
     
     def close(self) -> None:
         """
