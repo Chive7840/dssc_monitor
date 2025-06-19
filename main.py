@@ -40,10 +40,8 @@ def main():
             
             # -- Light sensor (TSL2591) --
             lux = None
-            sleep(3)
             
             try:
-                tsl_sensor.auto_gain_adjust()
                 lux = tsl_sensor.read_lux()
             except Exception as err:
                 print(f"[ERROR] Failed to read TSL2591: {err}")
@@ -54,10 +52,14 @@ def main():
             
             # -- Humidity & Temperature sensor (DHT11) --
             try:
-                temperature, humidity = dht_sensor.read()
-                print(f"[LOG] Temperature: {temperature:.1f}°C | Humidity: {humidity:.1f}%")
-                data["temperature"] = temperature
-                data["humidity"] = humidity
+                result = dht_sensor.read()
+                if result:
+                    temperature, humidity = dht_sensor.read()
+                    print(f"[LOG] Temperature: {temperature:.1f}°C | Humidity: {humidity:.1f}%")
+                    data["temperature"] = temperature
+                    data["humidity"] = humidity
+                else:
+                    print("[ERROR] DHT11 reading failed after retries.")
             except Exception as err:
                 print(f"[ERROR] Failed to read DHT11: {err}")
                 
@@ -93,6 +95,7 @@ def main():
     except KeyboardInterrupt:
         print("[ERROR] Logging interrupted by user.\nTerminating...")
     finally:
+        dht_sensor.cleanup()
         logger.close()
 
 if __name__ == "__main__":

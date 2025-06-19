@@ -31,15 +31,27 @@ class TSL2591Sensor:
         except RuntimeError as err:
             raise ConnectionError(f"[ERROR] Failed to initialize TSL2591 sensor over I2C: {err}") from err
         
-    def read_lux(self) -> float:
+    def read_lux(self, retry_on_overflow: bool = True) -> float:
         """
         Reads the current ambient light level in lux.
         
         Returns:
-            float: Light level in lux.
+            float: Light level in lux, or 0.0 if overflow error occurs.
         """
-        return self.sensor.lux
-    
+        try:
+            return self.sensor.lux
+        except OverflowError:
+            print(f"[TSL2591] OverflowError: Saturation reached. Consider reducing gain.")
+            if retry_on_overflow:
+                self.set_gain(self.GAIN_LOW)
+                self.set_integration_time(self.INTEGRATIONTIME_100MS)
+                sleep(0.1) # Gives sensor time to apply new settings
+                try:
+                    return self.sensor.lux
+                except OverflowError:
+                    print("[TSL2591] Overflow persisted after gain/integration adjustment.")
+            return 0.0
+     
     def read_raw_channels(self) -> tuple[int, int]:
         """
         Returns raw channel values:  (full spectrum, infrared)
@@ -126,6 +138,13 @@ class TSL2591Sensor:
             print(f"[TSL2591] Failed to read raw channels: {err}")
             return
         
+        # Early exit if sensor is saturated
+        if total >= 65000:	# Near 16-bit ADC max
+            self.set_gain(self.GAIN_LOW)
+            self.set_integration_time(self.INTEGRATIONTIME_100MS)
+            print("[TSL591 Saturated. Forcing LOW gain and short integration time.]")
+            return
+        
         gain = self.get_gain()
         integration = self.get_integration_time()
         
@@ -157,5 +176,5 @@ class TSL2591Sensor:
             changed = True
             
         if changed:
-            print(f"[TSL2591] Auto-adjusted: gain set to {gain},"
-                  f"integration time set to {integration}")
+            print(f"[TSL2591] Auto-adjusted: gain set to {desired_gain},"
+                  f"integration time set to {desired_time}")
