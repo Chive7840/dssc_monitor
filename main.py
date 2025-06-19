@@ -35,7 +35,7 @@ def main():
             data = {}
             # -- Light sensor (TSL2591) --
             lux = None
-            
+            sleep(3)
             try:
                 tsl_sensor.auto_gain_adjust()
                 lux = tsl_sensor.read_lux()
@@ -82,7 +82,7 @@ def main():
                 except Exception as err:
                     print(f"[ERROR] Failed to read INA219 sensor {idx}: {err}")
                     
-            sleep(10)
+            sleep(30)
             
     except KeyboardInterrupt:
         print("[ERROR] Logging interrupted by user.\nTerminating...")

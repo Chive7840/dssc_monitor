@@ -1,5 +1,6 @@
 from typing import List, Dict
 from database.db import SensorDatabase
+import pandas as pd
 
 class SensorDataReader:
     """
@@ -124,6 +125,30 @@ class SensorDataReader:
             }
         return {}
     
+    def show_all_dataframes(self, print_dfs: bool) -> Dict[str, pd.DataFrame]:
+        """
+        Returns all data from both tables as pandas DataFrames.
+        
+        Returns:
+            Dict[str, pd.DataFrame]: Dictionary with keys 'sensor_data' and 'cell_output'
+        """
+        sensor_query = f"SELECT * FROM {SensorDatabase.get_sensor_table_name()};"
+        cell_query = f"SELECT * FROM {SensorDatabase.get_cell_output_table_name()};"
+        
+        sensor_df = pd.read_sql_query(sensor_query, self.conn)
+        sensor_df = pd.read_sql_query(cell_query, self.conn)
+        
+        if self.print_dfs:
+            print("Sensor Data:")
+            print(dfs["sensor_data"])
+            
+            print("\nCell Output:")
+            print(dfs["cell_output"])
+        
+        return {
+            "sensor_data": sensor_df,
+            "cell_output": cell_df
+        }
     
     def close(self) -> None:
         """
