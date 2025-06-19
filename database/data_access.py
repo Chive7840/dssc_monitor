@@ -150,6 +150,25 @@ class SensorDataReader:
             "cell_output": cell_df
         }
     
+    def export_to_csv(self, sensor_file: str = "./data_output/sensor_data.csv",
+                      cell_file: str = "./data_output/cell_output.csv") -> None:
+        """
+        Exports both tables to CSV files.
+        
+        Args:
+            sensor_file (str): Filename for sensor_data export.
+            cell_file (str): Filename for the cell_output export.
+        """
+        confirm = input("Export current data to CSV before starting? Type 'YES' to confirm: ")
+        if confirm.strip().upper() != "YES":
+            raise PermissionError("Data export aborted by user.")
+        
+        dataframes = self.show_all_dataframes(print_dfs=False)
+        dataframes["sensor_data"].to_csv(sensor_file, index=False)
+        dataframes["cell_output"].to_csv(cell_file, index=False)
+        print(f"[EXPORT] Sensor data saved to: {sensor_file}")
+        print(f"[EXPORT] Cell output data saved to: {cell_file}")
+    
     def clear_all_data(self) -> None:
         """
         Deletes all records from both sensor_data and cell_output tables.
@@ -170,11 +189,6 @@ class SensorDataReader:
         self.cursor.execute(f"DELETE FROM {SensorDatabase.get_cell_output_table_name()};")
         self.conn.commit()
         print("All data successfully deleted.")
-        
-        # -- Usage --
-        #reader = SensorDataReader("sensor_data.db")
-        #reader.clear_all_data()	# Will promppt user to type 'YES'
-        #reader.close()
     
     def close(self) -> None:
         """

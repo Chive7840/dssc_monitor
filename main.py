@@ -32,9 +32,14 @@ def main():
     """
     logger = SensorLogger()
     
-    # -- Optional data wipe --
+    # -- User prompts for data export and wiping the SQL DB --
     try:
         reader = SensorDataReader("sensor_data.db")
+        
+        # Prompt for optional export
+        reader.export_to_csv()
+        
+        # Prompt for optional data wipe
         reader.clear_all_data()	# Handles user prompt internally
     except PermissionError as err:
         print(f"[DB INIT] {err}")
