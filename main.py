@@ -34,13 +34,17 @@ def main():
         while True:
             data = {}
             # -- Light sensor (TSL2591) --
+            lux = None
+            
             try:
                 tsl_sensor.auto_gain_adjust()
                 lux = tsl_sensor.read_lux()
-                print(f"[LOG] Light intensity: {lux:.2f}")
-                data["lux"] = lux
             except Exception as err:
                 print(f"[ERROR] Failed to read TSL2591: {err}")
+            
+            if lux is not None:
+                print(f"[LOG] Light intensity: {lux:.2f}")
+                data["lux"] = lux    
             
             # -- Humidity & Temperature sensor (DHT11) --
             try:
