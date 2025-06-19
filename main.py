@@ -27,9 +27,20 @@ def setup_sensors():
 
 
 def main():
-    """-- Executes main logging loop for all sensors --"""
+    """
+    Executes main logging loop for all sensors
+    """
     logger = SensorLogger()
-    #reader = SensorDataReader("sensor_data.db")		# TODO: Fix hardcoding to be more dynamic
+    
+    # -- Optional data wipe --
+    try:
+        reader = SensorDataReader("sensor_data.db")
+        reader.clear_all_data()	# Handles user prompt internally
+    except PermissionError as err:
+        print(f"[DB INIT] {err}")
+    finally:
+        reader.close()
+        
     dht_sensor, tsl_sensor, ina_sensors = setup_sensors()
 
     try:
@@ -77,7 +88,7 @@ def main():
                     voltage = sensor.read_voltage()
                     current = sensor.read_current()
                     power = sensor.read_power()
-                    print(f"[LOG] Cell{idx}: Voltage={voltage:.3f}V, Current={current:.3f}mA P={power:.2f}mW")
+                    print(f"[LOG] Cell{idx}: Voltage={voltage:.3f}V, Current={current:.3f}mA, P={power:.2f}mW")
                     logger.log_cell_output(
                         cell_id=f"cell_{idx}",
                         data={
