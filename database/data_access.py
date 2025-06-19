@@ -158,6 +158,10 @@ class SensorDataReader:
         Args:
             sensor_file (str): Filename for sensor_data export.
             cell_file (str): Filename for the cell_output export.
+            
+        Raises PermissionError:
+            If user declines the confirmation prompt.
+        
         """
         confirm = input("Export current data to CSV before starting? Type 'YES' to confirm: ")
         if confirm.strip().upper() != "YES":
@@ -175,7 +179,8 @@ class SensorDataReader:
         Intended for resetting the database before an experiment run.
         Requires user confirmation via interactive prompt to proceed.
         
-        Raises: PermissionError: If user declines the confirmation prompt.
+        Raises PermissionError:
+            If user declines the confirmation prompt.
         """
         
         confirm = input(

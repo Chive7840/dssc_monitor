@@ -36,16 +36,19 @@ def main():
     try:
         reader = SensorDataReader("sensor_data.db")
         
-        # Prompt for optional export
+        # Prompt for optional export user prompt
+        # The user prompt is handled internally
         reader.export_to_csv()
         
         # Prompt for optional data wipe
-        reader.clear_all_data()	# Handles user prompt internally
+        # The user prompt is handled internally
+        reader.clear_all_data()
     except PermissionError as err:
         print(f"[DB INIT] {err}")
     finally:
         reader.close()
-        
+    
+    # -- Initializes all sensors --
     dht_sensor, tsl_sensor, ina_sensors = setup_sensors()
 
     try:
@@ -55,6 +58,7 @@ def main():
             #reader.show_all_dataframes(True) # Comment out while the program is gathering data.
             
             # -- Light sensor (TSL2591) --
+            # Try/except loop designed to avoid oversaturating the sensor
             lux = None
             
             try:
