@@ -32,12 +32,13 @@ def main():
 
     try:
         while True:
+            data = {}
             # -- Light sensor (TSL2591) --
             try:
+                tsl_sensor.auto_gain_adjust()
                 lux = tsl_sensor.read_lux()
-                tsl_sensor.auto_gain_adjust(lux)
                 print(f"[LOG] Light intensity: {lux:.2f}")
-                logger.log_data(lux=lux)
+                data["lux"] = lux
             except Exception as err:
                 print(f"[ERROR] Failed to read TSL2591: {err}")
             
@@ -45,10 +46,18 @@ def main():
             try:
                 temperature, humidity = dht_sensor.read()
                 print(f"[LOG] Temperature: {temperature:.1f}°C | Humidity: {humidity:.1f}%")
-                logger.log_data(temperature=temperature, humidity=humidity)
-
+                data["temperature"] = temperature
+                data["humidity"] = humidity
             except Exception as err:
                 print(f"[ERROR] Failed to read DHT11: {err}")
+                
+            # -- Only log if all fields are available --
+            if all(k in data for k in ("lux", "temperature", "humidity")):
+                logger.log_data(
+                    lux=data["lux"],
+                    temperature=data["temperature"],
+                    humidity=data["humidity"]
+                )
                 
             # -- Voltage/current sensors (INA219) --
             for idx, sensor in enumerate(ina_sensors, start=1):

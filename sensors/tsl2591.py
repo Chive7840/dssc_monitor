@@ -40,6 +40,12 @@ class TSL2591Sensor:
         """
         return self.sensor.lux
     
+    def read_raw_channels(self) -> tuple[int, int]:
+        """
+        Returns raw channel values:  (full spectrum, infrared)
+        """
+        return self.sensor.raw_luminosity
+    
     # ----------------------------------------------------------------
     # GAIN CONTROL
     # ----------------------------------------------------------------
@@ -108,25 +114,32 @@ class TSL2591Sensor:
     # ----------------------------------------------------------------
     # AUTOMATIC GAIN ADJUSTMENT
     # ----------------------------------------------------------------   
-    def auto_gain_adjust(self, lux: float) -> None:
+    def auto_gain_adjust(self) -> None:
         """
         Automatically adjusts sensor gain and integration time based on the current lux value.
         This improves accuracy in varying light conditions without requiring user input.
         """
+        try:
+            full, ir = self.read_raw_channels()
+            total = full + ir
+        except RuntimeError as err:
+            print(f"[TSL2591] Failed to read raw channels: {err}")
+            return
+        
         gain = self.get_gain()
         integration = self.get_integration_time()
         
         # Definitions for adjustment thresholds
-        if lux < 10:
+        if lux < 100:
             desired_gain = self.GAIN_MAX
             desired_time = self.INTEGRATIONTIME_600MS
-        elif lux < 100:
+        elif lux < 1000:
             desired_gain = self.GAIN_HIGH
             desired_time = self.INTEGRATIONTIME_400MS
-        elif lux < 1000:
+        elif lux < 8000:
             desired_gain = self.GAIN_MED
             desired_time = self.INTEGRATIONTIME_300MS
-        elif lux < 40000:
+        elif lux < 30000:
             desired_gain = self.GAIN_LOW
             desired_time = self.INTEGRATIONTIME_200MS
         else:
