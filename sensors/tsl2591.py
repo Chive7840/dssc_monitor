@@ -130,16 +130,16 @@ class TSL2591Sensor:
         integration = self.get_integration_time()
         
         # Definitions for adjustment thresholds
-        if lux < 100:
+        if total < 100:
             desired_gain = self.GAIN_MAX
             desired_time = self.INTEGRATIONTIME_600MS
-        elif lux < 1000:
+        elif total < 1000:
             desired_gain = self.GAIN_HIGH
             desired_time = self.INTEGRATIONTIME_400MS
-        elif lux < 8000:
+        elif total < 8000:
             desired_gain = self.GAIN_MED
             desired_time = self.INTEGRATIONTIME_300MS
-        elif lux < 30000:
+        elif total < 30000:
             desired_gain = self.GAIN_LOW
             desired_time = self.INTEGRATIONTIME_200MS
         else:
