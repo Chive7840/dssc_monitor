@@ -110,7 +110,7 @@ def main():
                 except Exception as err:
                     print(f"[ERROR] Failed to read INA219 sensor {idx}: {err}")
                     
-            sleep(30)
+            sleep(60)
             
     except KeyboardInterrupt:
         print("[ERROR] Logging interrupted by user.\nTerminating...")
